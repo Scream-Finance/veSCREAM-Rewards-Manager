@@ -9,6 +9,10 @@ interface IFeeDistributor {
     function last_token_time() external view returns (uint256);
 
     function checkpoint_token() external;
+
+    function commit_admin(address) external;
+
+    function apply_admin() external;
 }
 
 contract RewardsManager is Ownable {
@@ -116,5 +120,21 @@ contract RewardsManager is Ownable {
     function sweep(address _token, uint256 _amount) external onlyOwner {
         IERC20 token = IERC20(_token);
         token.transfer(owner(), _amount);
+    }
+
+    /**
+     * @notice Transfer ownership of the fee distribution contract back to the v2 safe.
+     * @dev Throws if the caller is not current owner.
+     */
+    function commitSafeFeeDistributionOwner() external onlyOwner {
+        feeDistributor.commit_admin(owner());
+    }
+
+    /**
+     * @notice Confirm ownership transfer.
+     * @dev Throws if the caller is not current owner.
+     */
+    function applyFeeDistributionOwner() external onlyOwner {
+        feeDistributor.apply_admin();
     }
 }

@@ -2,7 +2,7 @@ import brownie
 from brownie import Contract, chain
 
 # test all of our functions
-def test_operation(gov, scream, management, user, rewards_manager):
+def test_operation(gov, scream, management, user, rewards_manager, fee_distribution):
     # transfer gov to v2 MS
     rewards_manager.transferOwnership(gov, {"from": management})
 
@@ -13,11 +13,14 @@ def test_operation(gov, scream, management, user, rewards_manager):
     # give gov manager powers
     rewards_manager.setAuthorized(gov, True, {"from": gov})
 
+    # v2 ms transfers ownership of fee distro to this contract
+    fee_distribution.commit_admin(rewards_manager, {"from": gov})
+    assert fee_distribution.admin() == gov.address
+    fee_distribution.apply_admin({"from": gov})
+    assert fee_distribution.admin() == rewards_manager.address
+
     # transfer tokens to our contract
     scream.transfer(rewards_manager, 11_760e18, {"from": gov})
-
-    # sleep 6 days (writing this test on a Thursday)
-    chain.sleep(86400 * 6)
 
     # only managers can call
     with brownie.reverts():
@@ -73,3 +76,9 @@ def test_operation(gov, scream, management, user, rewards_manager):
     # sweep it out
     rewards_manager.sweep(scream, 11_760e18, {"from": gov})
     assert scream.balanceOf(rewards_manager) == 0
+
+    # make sure we can transfer ownership back
+    rewards_manager.commitSafeFeeDistributionOwner({"from": gov})
+    assert fee_distribution.admin() == rewards_manager.address
+    rewards_manager.applyFeeDistributionOwner({"from": gov})
+    assert fee_distribution.admin() == gov.address

@@ -3,6 +3,7 @@ from brownie import Contract, chain
 
 # test all of our functions
 def test_operation(gov, scream, management, user, rewards_manager, fee_distribution):
+
     # transfer gov to v2 MS
     rewards_manager.transferOwnership(gov, {"from": management})
 

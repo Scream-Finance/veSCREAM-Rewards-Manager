@@ -35,8 +35,8 @@ def scream():
 def fee_distribution():
     fee_distribution = Contract("0xae1BA6F7BAc58752e2B77923CF7a813153812619")
     yield fee_distribution
-
-
+    
+    
 @pytest.fixture
 def rewards_manager(management, RewardsManager, gov):
     # deploy
